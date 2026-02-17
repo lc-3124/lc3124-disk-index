@@ -842,6 +842,9 @@ def generate_html(files_info):
                         <a href="tencent://message/?uin=3418746552" class="author-link">
                             💝 赞助
                         </a>
+                        <a href="https://lc3124.discourse.group" target="_blank" class="author-link">
+                            💬 留言交流板
+                        </a>
                     </div>
                 </div>
                 
