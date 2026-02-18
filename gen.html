@@ -32,7 +32,6 @@
       overflow: hidden;
     }
     
-    /* 标题样式 */
     .page-title {
       text-align: center;
       font-size: 24px;
@@ -50,7 +49,6 @@
       border-radius: 3px;
     }
     
-    /* 身份验证提示板块 - 移除锁图标相关样式 */
     .auth-tip {
       background: linear-gradient(135deg, #e8f4f8 0%, #f0f8fb 100%);
       border: 1px solid #dee2e6;
@@ -58,12 +56,8 @@
       padding: 20px;
       margin-bottom: 30px;
       position: relative;
-      /* 移除左侧padding，因为不需要给图标留位置 */
       padding-left: 20px;
     }
-    
-    /* 删除锁图标伪元素样式 */
-    /* .auth-tip::before { 已删除 } */
     
     .auth-tip p {
       color: #2d3748;
@@ -95,7 +89,7 @@
       letter-spacing: 0.3px;
     }
     
-    input {
+    input, textarea {
       width: 100%;
       padding: 15px 20px;
       border: 1px solid #e2e8f0;
@@ -103,9 +97,10 @@
       font-size: 15px;
       transition: all 0.3s ease;
       background-color: #f8fafc;
+      resize: vertical;
     }
     
-    input:focus {
+    input:focus, textarea:focus {
       outline: none;
       border-color: #4299e1;
       box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.1);
@@ -142,18 +137,29 @@
       box-shadow: 0 2px 8px rgba(66, 153, 225, 0.2);
     }
     
+    /* 修改一键导入按钮样式：尺寸缩小 */
+    button#importBtn {
+      background: linear-gradient(135deg, #9f7aea 0%, #667eea 100%);
+      margin-top: 5px;
+      width: auto; /* 取消100%宽度 */
+      padding: 8px 16px; /* 缩小内边距 */
+      font-size: 14px; /* 缩小字体 */
+      display: inline-block; /* 行内块级，适配内容宽度 */
+    }
+    
+    /* 移除结果提示的边框和背景样式 */
     #result {
       margin-top: 30px;
-      padding: 20px;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      word-break: break-all;
+      padding: 20px 0; /* 仅保留上下内边距，取消左右内边距 */
+      min-height: 40px; /* 缩小最小高度 */
       font-size: 15px;
       line-height: 1.8;
-      min-height: 80px;
-      background-color: #f8fafc;
       text-align: center;
       transition: all 0.3s ease;
+      /* 移除边框、背景相关样式 */
+      border: none;
+      border-radius: 0;
+      background-color: transparent;
     }
     
     .sdk-error {
@@ -178,174 +184,200 @@
       font-weight: 600;
     }
     
-    /* 响应式优化 */
     @media (max-width: 768px) {
       .container {
         padding: 30px 20px;
       }
-      
       .page-title {
         font-size: 20px;
       }
-      
       .auth-tip {
         padding: 15px;
-        /* 同步移除响应式下的左侧额外padding */
         padding-left: 15px;
+      }
+      /* 移动端一键导入按钮适配 */
+      button#importBtn {
+        width: 100%;
+        padding: 10px 16px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- 页面标题 -->
-    <h1 class="page-title">Lc3124的下载站：身份校验！</h1>
-    <div class="title-divider"></div>
-    
-    <!-- SDK加载失败提示 -->
-    <div id="sdkError" class="sdk-error">
-      OSS SDK加载失败！<br>1. 检查oss-sdk.min.js是否和本文件同目录；<br>2. 确认文件为官方正版。
-    </div>
+<div class="container">
+  <h1 class="page-title">Lc3124的下载站：身份校验！</h1>
+  <div class="title-divider"></div>
 
-    <!-- 身份验证提示板块 -->
-    <div class="auth-tip">
-      <p>为了防止链接滥用，我开启了访问控制！请验证你的身份后点击下载！</p>
-      <p>链接获取方式为使用密钥临时生成，链接一小时过期！</p>
-      <p>密钥验证方式：输入lc给你的<strong>AccessKeyId</strong>和<strong>AccessKeySecret</strong>！</p>
-      <p>没有这些东西？！<br>请找lc去要一份哦～</p>
-      <p class="warning">注意！AccessKey一定一定不要透露出去！</p>
-    </div>
-
-    <!-- 输入区域 -->
-    <div class="input-group">
-      <label for="accessKeyId">AccessKeyId：</label>
-      <input type="text" id="accessKeyId" placeholder="AccessKeyId" value="">
-    </div>
-
-    <div class="input-group">
-      <label for="accessKeySecret">AccessKeySecret：</label>
-      <input type="password" id="accessKeySecret" placeholder="AccessKeySecret" value="">
-    </div>
-
-    <div class="input-group">
-      <label for="bucket">Bucket名称：</label>
-      <input type="text" id="bucket" placeholder="Bucket名称" value="lc3124-web-disk">
-    </div>
-
-    <div class="input-group">
-      <label for="region">Bucket地域：</label>
-      <input type="text" id="region" placeholder="Bucket地域" value="oss-cn-beijing">
-    </div>
-
-    <div class="input-group">
-      <label for="objectName">文件路径：</label>
-      <input type="text" id="objectName" placeholder="例如：/files/photo/avatar.png">
-    </div>
-
-    <div class="input-group">
-      <label for="expires">有效期（秒）：</label>
-      <input type="number" id="expires" placeholder="3600" value="3600" min="300" max="86400">
-    </div>
-
-    <button onclick="generateOssUrl()">直接下载</button>
-    <div id="result">点击按钮开始下载</div>
+  <div id="sdkError" class="sdk-error">
+    OSS SDK加载失败！<br>1. 检查oss-sdk.min.js是否和本文件同目录；<br>2. 确认文件为官方正版。
   </div>
 
-  <script src="./oss-sdk.min.js" 
-          onload="console.log('OSS SDK加载成功')" 
-          onerror="document.getElementById('sdkError').style.display='block'">
-  </script>
+  <div class="auth-tip">
+    <p>为了防止链接滥用，我开启了访问控制！请验证你的身份后点击下载！</p>
+    <p>链接获取方式为使用密钥临时生成，链接一小时过期！</p>
+    <p>密钥验证方式：输入lc给你的<strong>AccessKeyId</strong>和<strong>AccessKeySecret</strong>！</p>
+    <p>没有这些东西？！<br>请找lc去要一份哦～</p>
+    <p class="warning">注意！AccessKey一定一定不要透露出去！</p>
+  </div>
 
-  <script>
-    // 解析URL参数
-    function getUrlParam(name) {
-      const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`);
-      const r = window.location.search.substr(1).match(reg);
-      if (r != null) return decodeURIComponent(r[2]);
-      return '';
+  <!-- 一键导入 -->
+  <div class="input-group">
+    <label for="importKeys">一键导入钥匙对(也可以手动填写)：</label>
+    <textarea id="importKeys" rows="3" placeholder="粘贴格式示例：
+accessKeyId: 请输入你的AccessKeyId
+accessKeySecret: 请输入你的AccessKeySecret"></textarea>
+  </div>
+  <button id="importBtn" onclick="importKeys()">一键导入</button>
+
+  <div class="input-group">
+    <label for="accessKeyId">AccessKeyId：</label>
+    <input 
+      type="text" 
+      id="accessKeyId" 
+      placeholder="AccessKeyId" 
+      value="">
+  </div>
+
+  <div class="input-group">
+    <label for="accessKeySecret">AccessKeySecret：</label>
+    <input 
+      type="password" 
+      id="accessKeySecret" 
+      placeholder="AccessKeySecret" 
+      value="">
+  </div>
+
+  <div class="input-group">
+    <label for="bucket">Bucket名称：</label>
+    <input type="text" id="bucket" placeholder="Bucket名称" value="lc3124-web-disk">
+  </div>
+
+  <div class="input-group">
+    <label for="region">Bucket地域：</label>
+    <input type="text" id="region" placeholder="Bucket地域" value="oss-cn-beijing">
+  </div>
+
+  <div class="input-group">
+    <label for="objectName">文件路径：</label>
+    <input type="text" id="objectName" placeholder="例如：/files/photo/avatar.png">
+  </div>
+
+  <div class="input-group">
+    <label for="expires">有效期（秒）：</label>
+    <input type="number" id="expires" placeholder="3600" value="3600" min="300" max="86400">
+  </div>
+
+  <button onclick="generateOssUrl()">直接下载</button>
+  <div id="result">点击按钮开始下载</div>
+</div>
+
+<script src="./oss-sdk.min.js" 
+        onload="console.log('OSS SDK加载成功')" 
+        onerror="document.getElementById('sdkError').style.display='block'">
+</script>
+
+<script>
+  // 解析URL参数
+  function getUrlParam(name) {
+    const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`);
+    const r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return '';
+  }
+
+  // 一键导入钥匙对
+  function importKeys() {
+    const text = document.getElementById('importKeys').value.trim();
+    if (!text) {
+      document.getElementById('result').innerHTML = '<span class="error">请先粘贴钥匙对内容</span>';
+      return;
     }
 
-    // 核心下载函数
-    async function generateOssUrl() {
-      // 检查OSS SDK
-      if (typeof OSS === 'undefined') {
-        document.getElementById('result').innerHTML = '<span class="error">错误：OSS SDK未加载成功！</span>';
-        return;
+    const lines = text.split(/\n/);
+    let ak = '', sk = '';
+
+    lines.forEach(line => {
+      const l = line.trim();
+      if (l.toLowerCase().startsWith('accesskeyid:')) {
+        ak = l.split(':')[1]?.trim() || '';
       }
-
-      // 获取并校验输入值
-      const accessKeyId = document.getElementById('accessKeyId').value.trim();
-      const accessKeySecret = document.getElementById('accessKeySecret').value.trim();
-      const bucket = document.getElementById('bucket').value.trim();
-      const region = document.getElementById('region').value.trim();
-      const objectName = document.getElementById('objectName').value.trim();
-      const expires = parseInt(document.getElementById('expires').value) || 3600;
-
-      // 校验非空
-      if (!accessKeyId || !accessKeySecret || !bucket || !region || !objectName) {
-        document.getElementById('result').innerHTML = '<span class="error">错误：所有输入项均不能为空！</span>';
-        return;
+      if (l.toLowerCase().startsWith('accesskeysecret:')) {
+        sk = l.split(':')[1]?.trim() || '';
       }
+    });
 
-      // 校验有效期范围
-      if (expires < 300 || expires > 86400) {
-        document.getElementById('result').innerHTML = '<span class="error">错误：有效期需在300-86400秒之间！</span>';
-        return;
-      }
+    if (ak) document.getElementById('accessKeyId').value = ak;
+    if (sk) document.getElementById('accessKeySecret').value = sk;
 
-      try {
-        // 创建OSS客户端
-        const client = new OSS({
-          accessKeyId: accessKeyId,
-          accessKeySecret: accessKeySecret,
-          bucket: bucket,
-          region: region
-        });
+    document.getElementById('result').innerHTML = 
+      '<span class="success">✅ 导入成功，已自动填充钥匙对</span>';
+  }
 
-        // 生成签名URL
-        const downloadUrl = client.signatureUrl(objectName, {
-          expires: expires,
-          method: 'GET'
-        });
-
-        // 显示提示并跳转下载
-        document.getElementById('result').innerHTML = '<span class="success">✅ 身份验证通过，正在跳转下载...页面将在5秒后自动关闭</span>';
-        window.open(downloadUrl, '_blank');
-
-        // 延迟5秒自动关闭当前页面（给下载跳转留足够时间）
-        setTimeout(() => {
-          // 处理浏览器安全限制：只有通过JS打开的窗口才能被JS关闭
-          // 如果是用户手动打开的页面，关闭可能失败，增加提示
-          try {
-            window.close();
-          } catch (e) {
-            document.getElementById('result').innerHTML = '<span class="success">✅ 下载链接已打开，请手动关闭本页面</span>';
-          }
-        }, 5000);
-
-      } catch (error) {
-        // 捕获并展示错误
-        document.getElementById('result').innerHTML = `
-          <span class="error">❌ 下载失败：${error.message}</span>
-        `;
-        console.error('下载失败详情：', error);
-      }
+  // 核心下载函数
+  async function generateOssUrl() {
+    if (typeof OSS === 'undefined') {
+      document.getElementById('result').innerHTML = '<span class="error">错误：OSS SDK未加载成功！</span>';
+      return;
     }
 
-    // 页面加载初始化
-    window.onload = function() {
-      // 检查SDK状态
-      if (typeof OSS === 'undefined') {
-        document.getElementById('sdkError').style.display = 'block';
-      }
-      
-      // 读取URL中的path参数填充文件路径
-      const defaultPath = getUrlParam('path');
-      if (defaultPath) {
-        document.getElementById('objectName').value = defaultPath;
-      }
-    };
-  </script>
+    const accessKeyId = document.getElementById('accessKeyId').value.trim();
+    const accessKeySecret = document.getElementById('accessKeySecret').value.trim();
+    const bucket = document.getElementById('bucket').value.trim();
+    const region = document.getElementById('region').value.trim();
+    const objectName = document.getElementById('objectName').value.trim();
+    const expires = parseInt(document.getElementById('expires').value) || 3600;
+
+    if (!accessKeyId || !accessKeySecret || !bucket || !region || !objectName) {
+      document.getElementById('result').innerHTML = '<span class="error">错误：所有输入项均不能为空！</span>';
+      return;
+    }
+
+    if (expires < 300 || expires > 86400) {
+      document.getElementById('result').innerHTML = '<span class="error">错误：有效期需在300-86400秒之间！</span>';
+      return;
+    }
+
+    try {
+      const client = new OSS({
+        accessKeyId: accessKeyId,
+        accessKeySecret: accessKeySecret,
+        bucket: bucket,
+        region: region
+      });
+
+      const downloadUrl = client.signatureUrl(objectName, {
+        expires: expires,
+        method: 'GET'
+      });
+
+      document.getElementById('result').innerHTML = 
+        '<span class="success">✅ 身份验证通过，正在跳转下载...5秒后自动关闭</span>';
+      window.open(downloadUrl, '_blank');
+
+      setTimeout(() => {
+        try { window.close(); } catch (e) {
+          document.getElementById('result').innerHTML = 
+            '<span class="success">✅ 下载已开始，可手动关闭本页</span>';
+        }
+      }, 5000);
+
+    } catch (error) {
+      document.getElementById('result').innerHTML = 
+        `<span class="error">❌ 下载失败：${error.message}</span>`;
+      console.error('下载失败详情：', error);
+    }
+  }
+
+  window.onload = function () {
+    if (typeof OSS === 'undefined') {
+      document.getElementById('sdkError').style.display = 'block';
+    }
+    const defaultPath = getUrlParam('path');
+    if (defaultPath) {
+      document.getElementById('objectName').value = defaultPath;
+    }
+  };
+</script>
 </body>
 </html>
 
