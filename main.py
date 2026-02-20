@@ -368,6 +368,37 @@ def generate_html(files_info):
             opacity: 0.6;
         }}
 
+        /* 调整公告栏样式 - 减小体积 */
+        .public-section {{
+            background: linear-gradient(135deg, rgba(22, 27, 34, 0.6) 0%, rgba(33, 38, 45, 0.5) 100%);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(88, 166, 255, 0.05);
+            /* 减小内边距 */
+            padding: 0.6rem 0.8rem;
+            /* 减小外边距 */
+            margin: 0 0 1rem 0;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(88, 166, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }}
+
+        .public-section h2 {{
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+            /* 减小标题字体 */
+            font-size: 0.95rem;
+            display: block;
+        }}
+
+        .public-content {{
+            line-height: 1.5;
+            white-space: pre-wrap;
+            color: var(--text-secondary);
+            /* 减小内容字体 */
+            font-size: 0.85rem;
+        }}
+
         main {{
             background: rgba(22, 27, 34, 0.8);
             border-radius: var(--radius-lg);
@@ -821,8 +852,6 @@ def generate_html(files_info):
         <header>
             <h1>✨ Lc3124 的文件库</h1>
             <p class="subtitle">欢迎来到这里，随意看看吧</p>
-            <p class="subtitle">目录分级跳转还没有修好，凑合着用用吧～</p>
-            
             <div class="header-controls">
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="🔍 搜索文件或文件夹...">
@@ -841,6 +870,13 @@ def generate_html(files_info):
 
         <div class="breadcrumb" id="breadcrumb">
             <span class="breadcrumb-item active" data-path="">🏠 根目录</span>
+        </div>
+
+        <!-- 公告栏移动到面包屑之后、main之前 -->
+        <div class="public-section">
+            <!-- 去掉标题中的📢图标 -->
+            <h2>公告栏</h2>
+            <div class="public-content" id="broadcastContent">加载公告中...</div>
         </div>
 
         <main>
@@ -910,7 +946,30 @@ def generate_html(files_info):
         let searchQuery = '';
         let currentView = localStorage.getItem('viewMode') || 'grid';
         
+        // 新增：动态加载公告内容
+        async function loadBroadcastContent() {{
+            const contentElement = document.getElementById('broadcastContent');
+            try {{
+                // 发起请求读取broad.txt文件
+                const response = await fetch('broad.txt');
+                if (!response.ok) {{
+                    throw new Error(`HTTP错误，状态码: ${{response.status}}`);
+                }}
+                // 读取文本内容
+                const content = await response.text();
+                // 设置公告内容，为空时显示默认提示
+                contentElement.textContent = content.trim() || '暂无公告内容';
+            }} catch (error) {{
+                // 加载失败时显示错误提示
+                console.error('加载公告失败:', error);
+                contentElement.textContent = '加载公告内容时出错';
+            }}
+        }}
+        
         document.addEventListener('DOMContentLoaded', function() {{
+            // 页面加载完成后立即加载公告
+            loadBroadcastContent();
+            
             initViewToggle();
             renderContent();
             document.getElementById('searchInput').addEventListener('input', function(e) {{
