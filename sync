@@ -1,6 +1,11 @@
 #!/bin/bash
+echo ">>> git同步:"
 git pull
+echo ">>> oss拉取、网页编译:"
 python ./main.py
+echo ">>> git 提交:"
 git add .
 git commit -m "update context"
 git push
+
+echo ">>> 完成!"
